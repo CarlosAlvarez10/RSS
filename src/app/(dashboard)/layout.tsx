@@ -1,27 +1,192 @@
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+
+const menu = [
+  { href: "/dashboard/overview", label: "Overview", icon: "grid" },
+  { href: "/dashboard/facturas", label: "Facturas", icon: "invoice" },
+  { href: "#", label: "Pagos BAC", icon: "card" },
+  { href: "#", label: "CAI / Correlativos", icon: "shield" },
+  { href: "/dashboard/plantilla-factura", label: "Plantilla de Factura", icon: "template" },
+  { href: "/dashboard/storeganise", label: "Storeganise", icon: "sync" },
+  { href: "#", label: "Reportes", icon: "chart" },
+  { href: "#", label: "Alertas", icon: "alert" },
+];
+
+const icons: Record<string, React.ReactNode> = {
+  grid: (
+    <path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z" />
+  ),
+  invoice: (
+    <path d="M6 3h10l3 3v15l-3-1.5L13 21l-3-1.5L7 21l-3-1.5V5a2 2 0 0 1 2-2Zm9 0v4h4M8 10h8M8 14h8M8 18h4" />
+  ),
+  card: (
+    <path d="M4 7h16v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7Zm0 4h16M7 15h4" />
+  ),
+  shield: (
+    <path d="M12 3 20 6v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-3Zm-3 9 2 2 4-5" />
+  ),
+  template: (
+    <path d="M5 4h14v16H5V4Zm3 4h8M8 12h8M8 16h5" />
+  ),
+  sync: (
+    <path d="M17 2v5h-5M7 22v-5h5M19 11a7 7 0 0 0-12-5l-2 2M5 13a7 7 0 0 0 12 5l2-2" />
+  ),
+  chart: (
+    <path d="M4 19h16M7 16V9M12 16V5M17 16v-4" />
+  ),
+  alert: (
+    <path d="M12 3 22 20H2L12 3Zm0 6v5m0 3h.01" />
+  ),
+};
+
+function Icon({ name }: { name: string }) {
   return (
-    <div className="min-h-screen bg-zinc-100">
-      <div className="flex">
-        <aside className="w-64 min-h-screen bg-zinc-900 text-white p-6">
-          <h2 className="text-xl font-bold">RSS Admin</h2>
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      {icons[name]}
+    </svg>
+  );
+}
 
-          <nav className="mt-8 flex flex-col gap-3 text-sm">
-            <a href="/overview">Dashboard</a>
-            <a href="/facturas">Facturas</a>
-            <a href="/pagos-bac">Pagos BAC</a>
-            <a href="/cai-correlativos">CAI / Correlativos</a>
-            <a href="/plantilla-factura">Plantilla Factura</a>
-            <a href="/storeganise">Storeganise</a>
-            <a href="/reportes">Reportes</a>
-            <a href="/alertas">Alertas</a>
-          </nav>
-        </aside>
+function ToolbarIcon({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <button
+      aria-label={label}
+      title={label}
+      type="button"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-sky-300/70 bg-white/15 text-white transition hover:bg-white/25"
+    >
+      <svg
+        aria-hidden="true"
+        className="h-5 w-5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+      >
+        {children}
+      </svg>
+    </button>
+  );
+}
 
-        <main className="flex-1 p-8">{children}</main>
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <div className="flex min-h-screen bg-slate-50">
+      <aside
+        className={`no-print relative hidden shrink-0 bg-[#4188ef] text-white shadow-2xl shadow-sky-900/25 transition-[width] duration-200 md:block ${
+          collapsed ? "w-20" : "w-72"
+        }`}
+      >
+        <button
+          aria-label={collapsed ? "Expandir menú" : "Contraer menú"}
+          title={collapsed ? "Expandir menú" : "Contraer menú"}
+          type="button"
+          onClick={() => setCollapsed((current) => !current)}
+          className="absolute -right-3 top-6 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-sky-200 bg-white text-sky-700 shadow-lg shadow-sky-900/20 transition hover:bg-sky-50"
+        >
+          <svg
+            aria-hidden="true"
+            className={`h-4 w-4 transition-transform ${collapsed ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+            viewBox="0 0 24 24"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+
+        <div className={`border-b border-white/15 px-5 py-6 ${collapsed ? "px-3" : ""}`}>
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-white text-sky-700 shadow-lg shadow-sky-900/20">
+            <span className="text-base font-black">RS</span>
+          </div>
+          {!collapsed ? (
+            <>
+              <p className="mt-4 text-xs font-black uppercase text-sky-100">Roatan Self Storage</p>
+              <h2 className="mt-1 text-xl font-black tracking-tight text-white">Facturación Fiscal</h2>
+              <p className="mt-2 text-xs font-semibold leading-5 text-sky-50/90">Control BAC, CAI, facturas y Storeganise.</p>
+            </>
+          ) : null}
+        </div>
+        <nav className="space-y-1.5 p-3">
+          {menu.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={collapsed ? item.label : undefined}
+                className={`flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-sm font-extrabold transition ${
+                  active
+                    ? "bg-white text-sky-800 shadow-lg shadow-sky-900/15"
+                    : "text-sky-50 hover:bg-white/14 hover:text-white"
+                } ${collapsed ? "justify-center px-2" : ""}`}
+              >
+                <span
+                  className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
+                    active ? "bg-sky-50 text-sky-700" : "bg-white/12 text-white"
+                  }`}
+                >
+                  <Icon name={item.icon} />
+                </span>
+                {!collapsed ? <span className="truncate">{item.label}</span> : null}
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="no-print flex min-h-16 items-center justify-between gap-3 border-b border-[#2f70d6] bg-[#4188ef] px-4 text-white shadow-lg shadow-sky-900/15 md:px-6">
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase text-sky-100">Panel Administrativo</p>
+            <p className="truncate text-sm font-bold text-white">Roatan Self Storage</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <ToolbarIcon label="Notificaciones">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+            </ToolbarIcon>
+            <ToolbarIcon label="Configuración">
+              <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Zm7.4-2.3a8 8 0 0 0 0-2.4l2-1.5-2-3.5-2.4 1a8 8 0 0 0-2-1.2L14.7 3h-5.4L9 5.6a8 8 0 0 0-2 1.2l-2.4-1-2 3.5 2 1.5a8 8 0 0 0 0 2.4l-2 1.5 2 3.5 2.4-1a8 8 0 0 0 2 1.2l.3 2.6h5.4l.3-2.6a8 8 0 0 0 2-1.2l2.4 1 2-3.5-2-1.5Z" />
+            </ToolbarIcon>
+          </div>
+        </header>
+
+        <div className="no-print border-b border-sky-100 bg-white p-3 md:hidden">
+          <select
+            value={menu.find((item) => item.href === pathname)?.href ?? "/dashboard/overview"}
+            onChange={(event) => {
+              window.location.href = event.target.value;
+            }}
+            className="w-full rounded-md border border-sky-200 bg-white px-3 py-2 text-sm font-bold text-slate-800 outline-none focus:border-sky-400"
+          >
+            {menu.map((item) => (
+              <option key={item.href} value={item.href}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <main className="min-w-0 flex-1 bg-[radial-gradient(circle_at_top_right,#e0f7ff_0,#f8fafc_34%,#eef8ff_100%)]">{children}</main>
       </div>
     </div>
   );
