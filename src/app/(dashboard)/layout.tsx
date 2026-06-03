@@ -1,18 +1,22 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getCurrentUser, logout } from "@/lib/auth";
 
 const menu = [
   { href: "/dashboard/overview", label: "Overview", icon: "grid" },
   { href: "/dashboard/facturas", label: "Facturas", icon: "invoice" },
-  { href: "#", label: "Pagos BAC", icon: "card" },
-  { href: "#", label: "CAI / Correlativos", icon: "shield" },
+  { href: "/dashboard/pagos-bac", label: "Pagos BAC", icon: "card" },
+  { href: "/dashboard/cai-correlativos", label: "CAI / Correlativos", icon: "shield" },
   { href: "/dashboard/plantilla-factura", label: "Plantilla de Factura", icon: "template" },
   { href: "/dashboard/storeganise", label: "Storeganise", icon: "sync" },
-  { href: "#", label: "Reportes", icon: "chart" },
-  { href: "#", label: "Alertas", icon: "alert" },
+  { href: "/dashboard/estado-sistema", label: "Estado del Sistema", icon: "pulse" },
+  { href: "/dashboard/reportes", label: "Reportes", icon: "chart" },
+  { href: "/dashboard/alertas", label: "Alertas", icon: "alert" },
+  { href: "/dashboard/configuracion", label: "Configuración", icon: "settings", mobileOnly: true },
 ];
 
 const icons: Record<string, React.ReactNode> = {
@@ -34,11 +38,20 @@ const icons: Record<string, React.ReactNode> = {
   sync: (
     <path d="M17 2v5h-5M7 22v-5h5M19 11a7 7 0 0 0-12-5l-2 2M5 13a7 7 0 0 0 12 5l2-2" />
   ),
+  pulse: (
+    <path d="M3 12h4l2-7 4 14 2-7h6M5 20h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z" />
+  ),
   chart: (
     <path d="M4 19h16M7 16V9M12 16V5M17 16v-4" />
   ),
   alert: (
     <path d="M12 3 22 20H2L12 3Zm0 6v5m0 3h.01" />
+  ),
+  settings: (
+    <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Zm7.4-2.3a8 8 0 0 0 0-2.4l2-1.5-2-3.5-2.4 1a8 8 0 0 0-2-1.2L14.7 3h-5.4L9 5.6a8 8 0 0 0-2 1.2l-2.4-1-2 3.5 2 1.5a8 8 0 0 0 0 2.4l-2 1.5 2 3.5 2.4-1a8 8 0 0 0 2 1.2l.3 2.6h5.4l.3-2.6a8 8 0 0 0 2-1.2l2.4 1 2-3.5-2-1.5Z" />
+  ),
+  logout: (
+    <path d="M10 17l5-5-5-5M15 12H3m12-9h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
   ),
 };
 
@@ -59,7 +72,30 @@ function Icon({ name }: { name: string }) {
   );
 }
 
-function ToolbarIcon({ label, children }: { label: string; children: React.ReactNode }) {
+function ToolbarIcon({ label, children, href }: { label: string; children: React.ReactNode; href?: string }) {
+  const content = (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      {children}
+    </svg>
+  );
+
+  if (href) {
+    return (
+      <Link aria-label={label} title={label} href={href} className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-sky-300/70 bg-white/15 text-white transition hover:bg-white/25">
+        {content}
+      </Link>
+    );
+  }
+
   return (
     <button
       aria-label={label}
@@ -67,31 +103,30 @@ function ToolbarIcon({ label, children }: { label: string; children: React.React
       type="button"
       className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-sky-300/70 bg-white/15 text-white transition hover:bg-white/25"
     >
-      <svg
-        aria-hidden="true"
-        className="h-5 w-5"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        viewBox="0 0 24 24"
-      >
-        {children}
-      </svg>
+      {content}
     </button>
   );
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (!getCurrentUser()) router.replace("/login");
+  }, [router]);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-50">
       <aside
-        className={`no-print relative hidden shrink-0 bg-[#4188ef] text-white shadow-2xl shadow-sky-900/25 transition-[width] duration-200 md:block ${
-          collapsed ? "w-20" : "w-72"
+        className={`no-print relative hidden shrink-0 bg-[#4188ef] text-white shadow-2xl shadow-sky-900/25 transition-[width] duration-200 md:flex md:flex-col ${
+          collapsed ? "w-20" : "w-62"
         }`}
       >
         <button
@@ -115,9 +150,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </svg>
         </button>
 
-        <div className={`border-b border-white/15 px-5 py-6 ${collapsed ? "px-3" : ""}`}>
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-white text-sky-700 shadow-lg shadow-sky-900/20">
-            <span className="text-base font-black">RS</span>
+        <div className={`border-b border-white/12 px-2 py-6 ${collapsed ? "px-3" : ""}`}>
+          <div className={`flex items-center justify-center   ${collapsed ? "h-15 w-15 p-3" : "w-full p-3"}`}>
+            <Image
+              alt="Roatan Self Storage"
+              className={`h-auto ${collapsed ? "w-10" : "w-30"}`}
+              height={206}
+              priority
+              src="/logologin.png"
+              width={263}
+            />
           </div>
           {!collapsed ? (
             <>
@@ -127,8 +169,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </>
           ) : null}
         </div>
-        <nav className="space-y-1.5 p-3">
-          {menu.map((item) => {
+        <nav className="flex-1 space-y-1.5 p-3">
+          {menu.filter((item) => !item.mobileOnly).map((item) => {
             const active = pathname === item.href;
             return (
               <Link
@@ -153,6 +195,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             );
           })}
         </nav>
+        <div className="border-t border-white/15 p-3">
+          <button
+            aria-label="Cerrar sesión"
+            title={collapsed ? "Cerrar sesión" : undefined}
+            type="button"
+            onClick={handleLogout}
+            className={`flex min-h-11 w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-extrabold text-sky-50 transition hover:bg-white/14 hover:text-white ${collapsed ? "justify-center px-2" : ""}`}
+          >
+            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/12 text-white">
+              <Icon name="logout" />
+            </span>
+            {!collapsed ? <span>Cerrar sesión</span> : null}
+          </button>
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -165,7 +221,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <ToolbarIcon label="Notificaciones">
               <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
             </ToolbarIcon>
-            <ToolbarIcon label="Configuración">
+            <ToolbarIcon href="/dashboard/configuracion" label="Configuración">
               <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Zm7.4-2.3a8 8 0 0 0 0-2.4l2-1.5-2-3.5-2.4 1a8 8 0 0 0-2-1.2L14.7 3h-5.4L9 5.6a8 8 0 0 0-2 1.2l-2.4-1-2 3.5 2 1.5a8 8 0 0 0 0 2.4l-2 1.5 2 3.5 2.4-1a8 8 0 0 0 2 1.2l.3 2.6h5.4l.3-2.6a8 8 0 0 0 2-1.2l2.4 1 2-3.5-2-1.5Z" />
             </ToolbarIcon>
           </div>
